@@ -1,0 +1,10 @@
+version: 2.1
+executors:
+  jarbas:
+    docker:
+      - image: alpine
+jobs:
+  build:
+    executor: jarbas
+    steps:
+      - run: echo 'mensagem de dentro do alpine'
