@@ -11,4 +11,4 @@ jobs:
       - checkout
       - run:
           command: |
-            kubeval /kubeval/*.yaml
+            kubeval -d /kubeval
