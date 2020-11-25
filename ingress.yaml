@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: root
+  namespace: sonarqube
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-http-issuer"
+  labels:
+    app: sonarqube
+spec:
+  rules:
+    - host: sonarqube.totvs.io
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: svc-sonarqube
+              servicePort: 9000
+  tls:
+  - hosts:
+      - sonarqube.totvs.io
+    secretName: sonarqube-totvs-io

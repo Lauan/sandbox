@@ -1,0 +1,98 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+  labels:
+    app: sonarqube
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      initContainers:
+        - name: init-sysctl
+          image: busybox:1.31
+          command:
+            - sysctl
+            - -w
+            - vm.max_map_count=262144
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+      containers:
+        - name: sonarqube
+          imagePullPolicy: IfNotPresent
+          image: docker.totvs.io/sonarqube/sonar-server:7.9-community
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+                - SYS_RESOURCE
+          args:
+            - "-Dsonar.web.context=/"
+            - "-Dsonar.security.realm=LDAP"
+            - "-Dldap.StartTLS=false"
+            - "-Dldap.servers=server1,server2"
+            - "-Dldap.server1.url=ldap://10.171.59.13:3268"
+            - "-Dldap.server1.bindDn=$(LDAP_USER)"
+            - "-Dldap.server1.bindPassword=$(LDAP_PASSWORD)"
+            - "-Dldap.server1.user.baseDn=DC=local"
+            - "-Dldap.server1.user.request=(&(objectClass=User)(mail={login}))"
+            - "-Dldap.server1.user.realNameAttribute=cn"
+            - "-Dldap.server1.user.emailAttribute=mail"
+            - "-Dldap.server2.url=ldap://10.171.59.14:3268"
+            - "-Dldap.server2.user.baseDn=DC=local"
+            - "-Dldap.server2.user.request=(&(objectClass=User)(mail={login}))"
+            - "-Dldap.server2.user.realNameAttribute=cn"
+            - "-Dldap.server2.user.emailAttribute=mail"
+            - "-Dldap.server2.bindDn=$(LDAP_USER)"
+            - "-Dldap.server2.bindPassword=$(LDAP_PASSWORD)"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1024Mi
+            limits:
+              cpu: 4000m
+              memory: 6000Mi
+          env:
+            - name: SONARQUBE_JDBC_URL
+              value: "jdbc:postgresql://sp-postgresql01.totvs.io/fwsonar"
+            - name: SONARQUBE_JDBC_USERNAME
+              value: "fwsonar"
+            - name: SONARQUBE_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+            - name: LDAP_USER
+              value: "framework.sonarqube@sp01.local"
+            - name: LDAP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ldap
+                  key: password
+          # volumeMounts:
+          #   - mountPath: "/opt/sonarqube/data/"
+          #     name: sonar-data
+          #   - mountPath: "/opt/sonarqube/extensions/"
+          #     name: sonar-extensions
+          ports:
+            - name: http-port
+              containerPort: 9000
+              protocol: TCP
+      # volumes:
+      # - name: sonar-data
+      #   persistentVolumeClaim:
+      #     claimName: sonar-data
+      # - name: sonar-extensions
+      #   persistentVolumeClaim:
+      #     claimName: sonar-extensions

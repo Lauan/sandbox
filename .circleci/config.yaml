@@ -1,0 +1,14 @@
+version: 2.1
+executors:
+  jarbas:
+    docker:
+      - image: lauan/kubeval
+jobs:
+  build:
+    executor: jarbas
+    working_directory: /kubeval
+    steps:
+      - checkout
+      - run:
+          command: |
+            kubeval /kubeval/*.yaml
