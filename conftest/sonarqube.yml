@@ -5,6 +5,7 @@ metadata:
   namespace: sonarqube
   labels:
     app: sonarqube
+    environment: dev
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -13,11 +14,15 @@ spec:
   selector:
     matchLabels:
       app: sonarqube
+      release: sonarqube-stable
   template:
     metadata:
       labels:
         app: sonarqube
+        release: sonarqube-stable
     spec:
+      securityContext:
+        runAsNonRoot: true
       initContainers:
         - name: init-sysctl
           image: busybox:1.31
@@ -26,15 +31,14 @@ spec:
             - -w
             - vm.max_map_count=262144
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
       containers:
         - name: sonarqube
           imagePullPolicy: IfNotPresent
           image: sonarqube
           securityContext:
-            capabilities:
-              add:
-                - IPC_LOCK
-                - SYS_RESOURCE
+            runAsNonRoot: true
           resources:
             requests:
               cpu: 500m

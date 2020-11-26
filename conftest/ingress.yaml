@@ -1,10 +1,10 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: root
-  namespace: sonarqube
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-http-issuer"
+  name: root
+  namespace: sonarqube
   labels:
     app: sonarqube
 spec:
