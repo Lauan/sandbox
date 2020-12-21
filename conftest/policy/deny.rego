@@ -24,11 +24,11 @@ deny[msg] {
 }
 
 required_ingress_annotation {
-  input.metadata.annotations["cert-manager.io/cluster-issuer"]
+  input.metadata.annotations["cert-manager.io/cluster-issuer"] == "letsencrypt-http-issuer"
 }
 
 deny[msg] {
   kubernetes.is_ingress
   not required_ingress_annotation
-  msg = sprintf("Ingress %s should have the cert-manager annotation", [name])
+  msg = sprintf("Ingress %s should have a cert-manager annotation with a value of 'letsencrypt-http-issuer'", [name])
 }

@@ -1,0 +1,15 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: websample-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  rules:
+  - host: lauan.com.br
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: websample-svc
+          servicePort: 80

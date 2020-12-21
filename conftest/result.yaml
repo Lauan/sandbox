@@ -1,0 +1,131 @@
+apiVersion: v1
+data:
+  ESPORTE: Surf
+  LIVRO: Stormlight Archive
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+  name: websample-configmap-c7m6mcchdt
+  namespace: sandbox
+---
+apiVersion: v1
+data:
+  dbPassword: cGFzczEyMw==
+  dbUser: YWRtaW4=
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/instance: development
+  name: websample-secret-9hg9t56t8h
+  namespace: sandbox
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: websample
+    app.kubernetes.io/component: websample
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/managed-by: lauan
+    app.kubernetes.io/name: websample
+    app.kubernetes.io/part-of: sandbox
+    metrics: prometheus
+  name: websample-svc
+  namespace: sandbox
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: websample
+    app.kubernetes.io/component: websample
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/managed-by: lauan
+    app.kubernetes.io/name: websample
+    app.kubernetes.io/part-of: sandbox
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: websample
+    app.kubernetes.io/component: websample
+    app.kubernetes.io/instance: development
+    app.kubernetes.io/managed-by: lauan
+    app.kubernetes.io/name: websample
+    app.kubernetes.io/part-of: sandbox
+  name: websample
+  namespace: sandbox
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: websample
+      app.kubernetes.io/component: websample
+      app.kubernetes.io/instance: development
+      app.kubernetes.io/managed-by: lauan
+      app.kubernetes.io/name: websample
+      app.kubernetes.io/part-of: sandbox
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: websample
+        app.kubernetes.io/component: websample
+        app.kubernetes.io/instance: development
+        app.kubernetes.io/managed-by: lauan
+        app.kubernetes.io/name: websample
+        app.kubernetes.io/part-of: sandbox
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: edi-worker-secret
+        - configMapRef:
+            name: edi-worker-configmap
+        image: lauan/nginxteste
+        imagePullPolicy: IfNotPresent
+        name: websample
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100mm
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsGroup: 2000
+          runAsUser: 2000
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/instance: development
+  name: websample-ingress
+  namespace: sandbox
+spec:
+  rules:
+  - host: lauan.com.br
+    http:
+      paths:
+      - backend:
+          serviceName: websample-svc
+          servicePort: 80
+        path: /
