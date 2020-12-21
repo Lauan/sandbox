@@ -4,6 +4,7 @@ metadata:
   name: websample-ingress
   annotations:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-http-issuer
 spec:
   rules:
   - host: lauan.com.br

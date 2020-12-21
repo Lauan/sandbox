@@ -2,12 +2,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: websample
+  labels:
+    environment: prod
 spec:
   replicas: 2
   revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: websample
+      release: latest
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -17,10 +20,13 @@ spec:
     metadata:
       labels:
         app: websample
+        release: latest
     spec:
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
       restartPolicy: Always
+#      securityContext:
+#        runAsNonRoot: true
       containers:
         - name: websample
           image: websample
